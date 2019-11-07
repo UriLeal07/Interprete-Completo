@@ -27,6 +27,7 @@ public class Launcher
         
         MainFrame app = new MainFrame();
         app.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        app.setExtendedState(JFrame.MAXIMIZED_BOTH); 
         app.setVisible(true);
     }
 }
