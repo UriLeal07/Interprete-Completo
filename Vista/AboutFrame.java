@@ -2,14 +2,14 @@ package Vista;
 
 import java.net.URL;
 import javax.swing.ImageIcon;
+import javax.swing.JFrame;
 
-class AboutFrame extends javax.swing.JFrame
+class AboutFrame extends JFrame
 {
     public AboutFrame()
     {
-        initComponents();
-        
         URL iconURL = getClass().getResource("/Icons/help.png");
+        initComponents();
         
         if(iconURL != null)
         {
