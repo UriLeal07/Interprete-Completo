@@ -21,6 +21,7 @@ public class Sintactico
         semantico = new Semantico(lexico.getC());
         estadoActual= new LinkedList<>();
         controlPara = new LinkedList<>();
+        estadoPrev = null;
         indiceactual = 0;
         ready= false;
     }
@@ -70,8 +71,10 @@ public class Sintactico
     
     
 
-    public void C() throws ParserException {
-        if (token.token.equals("PR")){
+    public void C() throws ParserException
+    {
+        if (token.token.equals("PR"))
+        {
             switch (token.secuencia){
                 case "escribe":
                         J(); //Funcionando al 100 papu
@@ -88,14 +91,15 @@ public class Sintactico
                 default:
                     //vacio
             }
-        }else if(token.token.equals("identificador")){
+        }
+        else if(token.token.equals("identificador")){
             N(); //Funcionando al 100 papu
-        }else{
+        }
+        else{
             //vacio
         }
     }
-
-
+    
     //Aqui se debe hacer la funcion escribe :3
     public void J()throws ParserException{
         Emparejar("escribe");
@@ -172,7 +176,7 @@ public class Sintactico
             Variables otro = new Variables();
             Lim(otro);
             P(otro);
-            System.out.println(otro.valorsel);
+            //System.out.println(otro.valorsel);
             if(otro.valorsel>=aux.length()){
                 throw new ParserException(ErrorSemantico(aux.nombre,"Indice fuera del rango del arreglo",ultimoToken.pos));
             }
@@ -278,7 +282,7 @@ public class Sintactico
             limitepara= Integer.parseInt(otro.value);
         }
         Emparejar("paso");
-        String simbolo="";
+        String simbolo;
         Variables incremento=new Variables();
         simbolo= Indec(incremento);
         Emparejar("hacer");
@@ -300,7 +304,7 @@ public class Sintactico
                 indiceactual= indiceactual+1;
                 ParasControl paraactual = getPara(indiceactual);
                 if(paraactual==null){
-                    throw new ParserException(ErrorSemantico("","Error al interpretar un ciclo para lo siento u.u",ultimoToken.pos));
+                    throw new ParserException(ErrorSemantico("","Error al interpretar un ciclo para",ultimoToken.pos));
                 }
                 //paraactual.AddInstruccion(token);
                 estadoActual= paraactual.instrucciones;
@@ -346,11 +350,11 @@ public class Sintactico
                 controlPara.clear();
                 indiceactual = 0;
             }else{
-                System.out.println("current token");
-                System.out.println(token.secuencia);
-                System.out.println("Current estado: ");
+                //System.out.println("current token");
+                //System.out.println(token.secuencia);
+                //System.out.println("Current estado: ");
                 imprimeestados(estadoActual);
-                System.out.println("Estado Prev: ");
+                //System.out.println("Estado Prev: ");
                 imprimeestados(estadoPrev);
                 estadoActual= estadoPrev;
                 estadoActual.addLast(token);
@@ -360,7 +364,7 @@ public class Sintactico
             recorrerhastaelfin(false);
         }
         Emparejar("fin");
-        System.out.println(token.secuencia);
+        //System.out.println(token.secuencia);
         C();
     }
 
@@ -512,7 +516,6 @@ public class Sintactico
 
     public void M()throws ParserException{
     	boolean band=false;
-    	String aux= new String();
         Emparejar("lee");
         Emparejar("parA");
         Emparejar("identificador");
@@ -520,7 +523,7 @@ public class Sintactico
         if(var!=null  )
         	if(var.isConstante)
         		throw new ParserException(ErrorSemantico(ultimoToken.secuencia,"es constante", ultimoToken.pos));
-        aux = lexico.getC().requestInput("de valor para la variable "+ultimoToken.secuencia);
+        String aux = lexico.getC().requestInput("de valor para la variable "+ultimoToken.secuencia);
         int value=-1;
         if(var!=null) {// si es variable ya existente
         	
@@ -572,7 +575,9 @@ public class Sintactico
         	        		
         	        	else
         	        		throw new ParserException(ErrorSemantico(aux,"se esperaba entero ", ultimoToken.pos));
-        	        }catch(Exception e) {
+        	        }
+                        catch(Exception e)
+                        {
         	        	if(semantico.getByName(var.nombre).printvalues().startsWith("\'")==false)
         	        		throw new ParserException(ErrorSemantico(aux,"se esperaba entero ", ultimoToken.pos));
         	        	if(aux.toCharArray().length!=3 && aux.toCharArray()[0]!='\'' && aux.toCharArray()[2]!='\'' )
@@ -1180,22 +1185,22 @@ public class Sintactico
         for(Tokens inst : current){
             res=res.concat(inst.secuencia+"|");
         }
-        System.out.println(res);
+        //System.out.println(res);
     }
     //Fin Metodos
 
-    private String Error(String lexema, String esperado,int linea)
+    private String Error(String lexema, String esperado, int linea)
     {
-    	lexico.getC().setMsgError("Error Sintactico: Encontrado lexema "+lexema+" se esperaba "+ esperado+ " en linea: "+String.valueOf(linea), "Exception", 2);
+    	//lexico.getC().setMsgError("Error sintáctico:\nEncontrado lexema "+lexema+" se esperaba "+ esperado+ " en linea: "+String.valueOf(linea), "Error sintáctico", 2);
         
-        return "Error Sintactico: Encontrado lexema "+lexema+" se esperaba "+ esperado+ " en linea: "+String.valueOf(linea);
+        return "Error Sintactico:\nEncontrado lexema "+lexema+" se esperaba "+ esperado+ " en linea: "+String.valueOf(linea);
     }
 
-    private String ErrorSemantico(String lexema, String esperado,int linea)
+    private String ErrorSemantico(String lexema, String esperado, int linea)
     {
-    	lexico.getC().setMsgError("Error Semantico: "+lexema+" "+esperado+" en linea "+String.valueOf(linea), "Exception", 2);
+    	//lexico.getC().setMsgError("Error semántico:\n"+lexema+" "+esperado+" en linea "+String.valueOf(linea), "Error semántico", 2);
         
-        return "Error Semantico: "+lexema+" "+esperado+" en linea "+String.valueOf(linea);
+        return "Error Semantico:\n"+lexema+" "+esperado+" en linea "+String.valueOf(linea);
     }
     
     private void funcionEscribe(String cadena) {

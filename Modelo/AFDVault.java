@@ -325,7 +325,7 @@ public class AFDVault
         while (line != null) {
         	 if (!line.startsWith("//") && !line.isEmpty()){
         		 palabrasReservadas.add(line);
-        		 System.out.println(line);
+        		 //System.out.println(line);
         	 }
         	 line=bufferreader.readLine();
         }
