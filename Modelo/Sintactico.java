@@ -519,12 +519,15 @@ public class Sintactico
         Emparejar("lee");
         Emparejar("parA");
         Emparejar("identificador");
-        Variables var= semantico.getByName(ultimoToken.secuencia);
+        Variables var = semantico.getByName(ultimoToken.secuencia);
+        
         if(var!=null  )
         	if(var.isConstante)
         		throw new ParserException(ErrorSemantico(ultimoToken.secuencia,"es constante", ultimoToken.pos));
-        String aux = lexico.getC().requestInput("de valor para la variable "+ultimoToken.secuencia);
-        int value=-1;
+        
+        String aux = lexico.getC().requestInput("Ingrese un valor para la variable \""+ultimoToken.secuencia+"\":");
+        int value = -1;
+        
         if(var!=null) {// si es variable ya existente
         	
         	if(var.isArreglo==false) {
@@ -1185,22 +1188,21 @@ public class Sintactico
         for(Tokens inst : current){
             res=res.concat(inst.secuencia+"|");
         }
-        //System.out.println(res);
     }
     //Fin Metodos
 
     private String Error(String lexema, String esperado, int linea)
     {
-    	//lexico.getC().setMsgError("Error sintáctico:\nEncontrado lexema "+lexema+" se esperaba "+ esperado+ " en linea: "+String.valueOf(linea), "Error sintáctico", 2);
+    	lexico.getC().printMsgError("Error sintáctico: Encontrado lexema "+lexema+" se esperaba "+ esperado+ " en linea: "+String.valueOf(linea));
         
         return "Error Sintactico:\nEncontrado lexema "+lexema+" se esperaba "+ esperado+ " en linea: "+String.valueOf(linea);
     }
 
     private String ErrorSemantico(String lexema, String esperado, int linea)
     {
-    	//lexico.getC().setMsgError("Error semántico:\n"+lexema+" "+esperado+" en linea "+String.valueOf(linea), "Error semántico", 2);
+    	lexico.getC().printMsgError("Error semántico: "+lexema+" "+esperado+" en linea: "+String.valueOf(linea));
         
-        return "Error Semantico:\n"+lexema+" "+esperado+" en linea "+String.valueOf(linea);
+        return "Error Semantico:\n"+lexema+" "+esperado+" en linea: "+String.valueOf(linea);
     }
     
     private void funcionEscribe(String cadena) {

@@ -4,6 +4,8 @@ import Controlador.Control;
 import Modelo.ParserException;
 import java.awt.Font;
 import java.awt.Rectangle;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileWriter;
@@ -12,35 +14,55 @@ import java.io.PrintWriter;
 import java.net.URL;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JTextArea;
+import javax.swing.Timer;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableModel;
 
-public class MainFrame extends JFrame
+public class MainFrame extends JFrame implements ActionListener
 {
+    // Componentes y configuracion de graficos
     private final Object[] stateColumns = {"Lexema", "Tipo", "Valor(es)"};
+    private final TextLineNumber txtLn;
+    private final JFileChooser selectorDeArchivo;
     private final Lienzo lienzo;
-    private final ArrayList <Arreglo> arrs;
+    private final int WIDTH_MARGIN = 20;
+    private final int HEIGHT_MARGIN = 35;
+    private final int Y_MARGIN = 17;
+    private final int X_MARGIN = 10;
+    
+    // Estructuras de datos
+    private final LinkedList <Historial> histArreglos;
     private final ArrayList <String[]> listArr;
     private final ArrayList <String[]> listCons;
     private final ArrayList <String[]> listVar;
-    private final JFileChooser selectorDeArchivo;
+    
+    // Controlador
     private final Control control;
+    
+    // Frames secundarios
     private AboutFrame frmAbout;
     private FileFrame frmAuto;
     private FileFrame frmPR;
-    private TextLineNumber txtLn;
-    private String txtAutomata;
-    private String txtPR;
+    
+    // Auxiliares
+    private String fileTextAutomata;
+    private String fileTextPR;
     private File dirPR;
     private File dirAuto;
     private File dirCodigo;
-    private long loggerEventID;
+    private long eventID;
+    private boolean progTitle;
+    private boolean arraysLoaded;
+    private int step;
+    private Timer timer;
+    private int maxArrayN;
 
     public MainFrame()
     {
@@ -64,43 +86,30 @@ public class MainFrame extends JFrame
         dirPR = null;
         dirCodigo = null;
         dirAuto = null;
-        
-        txtAutomata = "";
-        txtPR = "";
-        
-        loggerEventID = 0;
+        fileTextAutomata = "";
+        fileTextPR = "";
+        eventID = 0;
+        step = 0;
+        maxArrayN = 0;
         
         frmAbout = null;
         frmAuto = null;
         frmPR = null;
+        
         control = new Control(this);
         
-        arrs = new ArrayList <>();
+        histArreglos = new LinkedList <>();
         listArr = new ArrayList <>();
         listCons = new ArrayList <>();
         listVar = new ArrayList <>();
-        lienzo = new Lienzo(arrs);
         
-        Arreglo arr1 = new Arreglo("Nums 1");
-        Arreglo arr2 = new Arreglo("Nums 2");
-        
-        arr1.add(20, 20, 1, "First");
-        arr1.add(30, 30, 2, "Second");
-        arr1.add(40, 40, 3, "Third");
-        
-        arr2.add(50, 50, 4, "F2");
-        arr2.add(60, 60, 5, "S2");
-        arr2.add(70, 70, 6, "T2");
-        
-        arrs.add(arr1);
-        arrs.add(arr2);
-        //lienzo.setBounds(12, graficosLP.getY()+20, graficosLP.getWidth()-25, graficosLP.getHeight()-40);
-        //arrs.setBounds(lienzo.getBounds());
-        
-        //graficosLP.add(lienzo, new Integer(0));
-        
+        lienzo = new Lienzo(histArreglos);
         txtLn = new TextLineNumber(txtEditor);
         panelEditor.setRowHeaderView(txtLn);
+        progTitle = false;
+        arraysLoaded = false;
+        timer = new Timer(2000, this);
+        clearGraphics();
     }
     
     @SuppressWarnings("unchecked")
@@ -108,6 +117,7 @@ public class MainFrame extends JFrame
     private void initComponents() {
 
         jMenuItem2 = new javax.swing.JMenuItem();
+        jMenuItem4 = new javax.swing.JMenuItem();
         tabPaneMain = new javax.swing.JTabbedPane();
         tabProgra = new javax.swing.JPanel();
         panelEditor = new javax.swing.JScrollPane();
@@ -126,7 +136,6 @@ public class MainFrame extends JFrame
         tablaVar = new javax.swing.JTable();
         panelCons = new javax.swing.JScrollPane();
         tablaCons = new javax.swing.JTable();
-        tabConfig = new javax.swing.JPanel();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         mItCargarAuto = new javax.swing.JMenuItem();
@@ -136,6 +145,13 @@ public class MainFrame extends JFrame
         mItemAbrir = new javax.swing.JMenuItem();
         jSeparator2 = new javax.swing.JPopupMenu.Separator();
         mItemEjecutar = new javax.swing.JMenuItem();
+        jMenu3 = new javax.swing.JMenu();
+        mItemIniciarRapido = new javax.swing.JMenuItem();
+        mItemIniciarMedio = new javax.swing.JMenuItem();
+        mItemIniciarLento = new javax.swing.JMenuItem();
+        jSeparator3 = new javax.swing.JPopupMenu.Separator();
+        mItemIniciarPaso = new javax.swing.JMenuItem();
+        jMenuItem1 = new javax.swing.JMenuItem();
         jSeparator1 = new javax.swing.JPopupMenu.Separator();
         mItemGuardar = new javax.swing.JMenuItem();
         mItGuardarComo = new javax.swing.JMenuItem();
@@ -147,6 +163,8 @@ public class MainFrame extends JFrame
         mSalir = new javax.swing.JMenu();
 
         jMenuItem2.setText("jMenuItem2");
+
+        jMenuItem4.setText("jMenuItem4");
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Interprete");
@@ -208,11 +226,11 @@ public class MainFrame extends JFrame
             .addGroup(tabPrograLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(tabPrograLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(panelEditor, javax.swing.GroupLayout.DEFAULT_SIZE, 418, Short.MAX_VALUE)
+                    .addComponent(panelEditor, javax.swing.GroupLayout.DEFAULT_SIZE, 434, Short.MAX_VALUE)
                     .addComponent(graficosLP))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(tabPrograLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(panelConsola, javax.swing.GroupLayout.DEFAULT_SIZE, 160, Short.MAX_VALUE)
+                    .addComponent(panelConsola, javax.swing.GroupLayout.DEFAULT_SIZE, 177, Short.MAX_VALUE)
                     .addComponent(panelSalida)))
         );
 
@@ -229,6 +247,7 @@ public class MainFrame extends JFrame
 
         panelArr.setBorder(javax.swing.BorderFactory.createTitledBorder("Arreglos"));
 
+        tablaArreglos.setAutoCreateRowSorter(true);
         tablaArreglos.setFont(new java.awt.Font("Consolas", 0, 13)); // NOI18N
         tablaArreglos.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -250,6 +269,7 @@ public class MainFrame extends JFrame
 
         panelVar.setBorder(javax.swing.BorderFactory.createTitledBorder("Variables"));
 
+        tablaVar.setAutoCreateRowSorter(true);
         tablaVar.setFont(new java.awt.Font("Consolas", 0, 13)); // NOI18N
         tablaVar.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -271,6 +291,7 @@ public class MainFrame extends JFrame
 
         panelCons.setBorder(javax.swing.BorderFactory.createTitledBorder("Constantes"));
 
+        tablaCons.setAutoCreateRowSorter(true);
         tablaCons.setFont(new java.awt.Font("Consolas", 0, 13)); // NOI18N
         tablaCons.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -309,30 +330,18 @@ public class MainFrame extends JFrame
             .addGroup(tabEstructLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(tabEstructLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(panelHistorial)
                     .addGroup(tabEstructLayout.createSequentialGroup()
-                        .addComponent(panelArr, javax.swing.GroupLayout.PREFERRED_SIZE, 190, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(panelHistorial, javax.swing.GroupLayout.DEFAULT_SIZE, 606, Short.MAX_VALUE)
+                        .addContainerGap())
+                    .addGroup(tabEstructLayout.createSequentialGroup()
+                        .addComponent(panelArr, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(panelVar, javax.swing.GroupLayout.PREFERRED_SIZE, 190, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(panelVar, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(panelCons, javax.swing.GroupLayout.DEFAULT_SIZE, 181, Short.MAX_VALUE)))
-                .addContainerGap())
+                        .addComponent(panelCons, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))))
         );
 
         tabPaneMain.addTab("Estructuras de datos ", new javax.swing.ImageIcon(getClass().getResource("/Icons/list.png")), tabEstruct); // NOI18N
-
-        javax.swing.GroupLayout tabConfigLayout = new javax.swing.GroupLayout(tabConfig);
-        tabConfig.setLayout(tabConfigLayout);
-        tabConfigLayout.setHorizontalGroup(
-            tabConfigLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 1013, Short.MAX_VALUE)
-        );
-        tabConfigLayout.setVerticalGroup(
-            tabConfigLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 595, Short.MAX_VALUE)
-        );
-
-        tabPaneMain.addTab("Configuraciones ", new javax.swing.ImageIcon(getClass().getResource("/Icons/settings.png")), tabConfig); // NOI18N
 
         jMenu1.setText("Autómata");
 
@@ -389,6 +398,51 @@ public class MainFrame extends JFrame
             }
         });
         mArchivo.add(mItemEjecutar);
+
+        jMenu3.setText("Visualizar cambios en arreglos");
+
+        mItemIniciarRapido.setText("Iniciar - Rapido");
+        mItemIniciarRapido.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                mItemIniciarRapidoActionPerformed(evt);
+            }
+        });
+        jMenu3.add(mItemIniciarRapido);
+
+        mItemIniciarMedio.setText("Iniciar - Medio");
+        mItemIniciarMedio.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                mItemIniciarMedioActionPerformed(evt);
+            }
+        });
+        jMenu3.add(mItemIniciarMedio);
+
+        mItemIniciarLento.setText("Iniciar - Lento");
+        mItemIniciarLento.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                mItemIniciarLentoActionPerformed(evt);
+            }
+        });
+        jMenu3.add(mItemIniciarLento);
+        jMenu3.add(jSeparator3);
+
+        mItemIniciarPaso.setText("Avanzar un paso");
+        mItemIniciarPaso.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                mItemIniciarPasoActionPerformed(evt);
+            }
+        });
+        jMenu3.add(mItemIniciarPaso);
+
+        mArchivo.add(jMenu3);
+
+        jMenuItem1.setText("Cargar test");
+        jMenuItem1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem1ActionPerformed(evt);
+            }
+        });
+        mArchivo.add(jMenuItem1);
         mArchivo.add(jSeparator1);
 
         mItemGuardar.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.CTRL_MASK));
@@ -533,74 +587,80 @@ public class MainFrame extends JFrame
 
         if(dirCodigo == null)
         {
-            JOptionPane.showMessageDialog(this,
-                "No hay codigo para ejecutar",
-                "Error de código", JOptionPane.WARNING_MESSAGE);
-            
+            msgDial("No hay codigo para ejecutar", "Error de código", JOptionPane.WARNING_MESSAGE);
             return;
         }
         
         if(dirAuto == null)
         {
-            JOptionPane.showMessageDialog(this,
-                "Automata no cargado",
-                "Error de automata", JOptionPane.WARNING_MESSAGE);
-            
+            msgDial("Automata no cargado", "Error de automata", JOptionPane.WARNING_MESSAGE);
             return;
         }
         
         if(dirPR == null)
         {
-            JOptionPane.showMessageDialog(this,
-                "Palabras reservadas sin cargar",
-                "Error de palabras reservadas", JOptionPane.WARNING_MESSAGE);
-            
+            msgDial("Palabras reservadas sin cargar", "Error de palabras reservadas", JOptionPane.WARNING_MESSAGE);
             return;
         }
+        
         try
         {
             control.cargarAuto(dirAuto.getAbsolutePath());
             control.cargarReserv(dirPR.getAbsolutePath());
+            
             clearWorkspace();
             control.start(dirAuto.getAbsolutePath(), txtEditor.getText());
+            
             setLimits();
+            printListArr();
+            updateArrays();
+            
+            arraysLoaded = true;
+            maxArrayN = getMaxArrayCount();
+            drawArraySet(0);
+            System.out.println(printAllHistoriales());
         }
-        catch(IOException ie){ System.err.println(ie.getStackTrace()[0].getClassName());
-        JOptionPane.showMessageDialog(this,
-                               "No se cargo correctamente el automata o palabras reservadas\n Intente de nuevo",
-                               "Error de archivo", JOptionPane.ERROR_MESSAGE); }
-        catch(ParserException pe){ JOptionPane.showMessageDialog(this, pe.getLocalizedMessage(), "Error", JOptionPane.ERROR_MESSAGE); }
+        catch(IOException ie)
+        {
+            msgDial("No se cargo correctamente el automata o palabras reservadas\n Intente de nuevo",
+            "Error de archivo", JOptionPane.ERROR_MESSAGE);
+        }
+        catch(ParserException pe)
+        {
+            msgDial(pe.getLocalizedMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
         
     }//GEN-LAST:event_mItemEjecutarActionPerformed
 
     private void mItemVerAutoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mItemVerAutoActionPerformed
+        
         if(dirAuto != null)
         {
-            frmAuto = new FileFrame("Automata", dirAuto.getAbsolutePath(), txtAutomata);
+            frmAuto = new FileFrame("Automata", dirAuto.getAbsolutePath(), fileTextAutomata);
             frmAuto.setLocationRelativeTo(this);
             frmAuto.setVisible(true);
         }
         else
         {
-            JOptionPane.showMessageDialog(this,
-            "No existe automata\nCarguelo primero",
-            "Automata", JOptionPane.INFORMATION_MESSAGE);
+            msgDial("No existe automata\nCarguelo primero", "Automata", JOptionPane.INFORMATION_MESSAGE);
         }
+        
     }//GEN-LAST:event_mItemVerAutoActionPerformed
 
     private void mItemVerPRActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mItemVerPRActionPerformed
+        
         if(dirPR != null)
         {
-            frmPR = new FileFrame("Palabras Reservadas", dirPR.getAbsolutePath(), txtPR);
+            frmPR = new FileFrame("Palabras Reservadas", dirPR.getAbsolutePath(), fileTextPR);
             frmPR.setLocationRelativeTo(this);
             frmPR.setVisible(true);
         }
         else
         {
-            JOptionPane.showMessageDialog(this,
-            "No existen palabras reservadas\nCarguelas primero",
+            msgDial("No existen palabras reservadas\nCarguelas primero",
             "Palabras reservadas", JOptionPane.INFORMATION_MESSAGE);
-        }        
+        }
+        
     }//GEN-LAST:event_mItemVerPRActionPerformed
 
     private void mItemNuevoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mItemNuevoActionPerformed
@@ -611,6 +671,59 @@ public class MainFrame extends JFrame
         
     }//GEN-LAST:event_mItemNuevoActionPerformed
 
+    private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
+        
+        loadFile(1, new File("src/TestFiles/AutomataProyecto.txt"));
+        loadFile(2, new File("src/TestFiles/reservadasProyecto.txt"));
+        loadFile(0, new File("src/TestFiles/Prog8.txt"));
+        
+    }//GEN-LAST:event_jMenuItem1ActionPerformed
+
+    private void mItemIniciarRapidoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mItemIniciarRapidoActionPerformed
+        
+        if(arraysLoaded && !timer.isRunning())
+            runTimer(500);
+        else
+            msgDial("No se puede ejecutar la animación en este momento:\n1.- Verifique que ya se ejecuto el codigo\n"
+            + "2.- Verifique que no se esta ejecutando una animación", "Imposible ejecutar animación", JOptionPane.WARNING_MESSAGE);
+        
+    }//GEN-LAST:event_mItemIniciarRapidoActionPerformed
+
+    private void mItemIniciarPasoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mItemIniciarPasoActionPerformed
+         
+        if(arraysLoaded && !timer.isRunning())
+            nextStep();
+        else
+            msgDial("No se puede ejecutar la animación en este momento:\n1.- Verifique que ya se ejecuto el codigo\n"
+            + "2.- Verifique que no se esta ejecutando una animación", "Imposible ejecutar animación", JOptionPane.WARNING_MESSAGE);
+        
+    }//GEN-LAST:event_mItemIniciarPasoActionPerformed
+
+    private void mItemIniciarMedioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mItemIniciarMedioActionPerformed
+        
+        if(arraysLoaded && !timer.isRunning())
+            runTimer(1000);
+        else
+            msgDial("No se puede ejecutar la animación en este momento:\n1.- Verifique que ya se ejecuto el codigo\n"
+            + "2.- Verifique que no se esta ejecutando una animación", "Imposible ejecutar animación", JOptionPane.WARNING_MESSAGE);
+        
+    }//GEN-LAST:event_mItemIniciarMedioActionPerformed
+
+    private void mItemIniciarLentoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mItemIniciarLentoActionPerformed
+        
+        if(arraysLoaded && !timer.isRunning())
+            runTimer(2000);
+        else
+            msgDial("No se puede ejecutar la animación en este momento:\n1.- Verifique que ya se ejecuto el codigo\n"
+            + "2.- Verifique que no se esta ejecutando una animación", "Imposible ejecutar animación", JOptionPane.WARNING_MESSAGE);
+        
+    }//GEN-LAST:event_mItemIniciarLentoActionPerformed
+
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    // FUNCIONES PARA ARCHIVOS: ABRIR, CARGAR, GUARDAR, GUARDAR-COMO
+    //
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////
     
     private void openFile(int id)
     {
@@ -621,80 +734,62 @@ public class MainFrame extends JFrame
         {
             File archivo = selectorDeArchivo.getSelectedFile().getAbsoluteFile();
             
-            if(archivo.getName().endsWith("txt"))
+            if(archivo.getName().endsWith(".txt"))
             {
-                try (BufferedReader reader = Files.newBufferedReader(archivo.toPath()))
-                {
-                    String line = null;
-                    String texto = "";
-                    
-                    while ((line = reader.readLine()) != null)
-                        texto += line+"\n";
-                    
-                    // Limpiamos editor consola y salida
-                    clearWorkspace();
-                    
-                    // Guardamos referencia al archivo cargado en programa
-                    switch(id)
-                    {
-                        case 0: // Codigo
-                        
-                        dirCodigo = archivo;
-                        panelEditor.setBorder(BorderFactory.createTitledBorder("\""+archivo.getName()+"\""));
-                        txtEditor.setText(texto);
-                        
-                        break;
-                            
-                        case 1: // Automata
-                        
-                        dirAuto = archivo;
-                        txtAutomata = texto;
-                        
-                        break;
-                        // Palabras Reservadas
-                        default:
-                            
-                            dirPR = archivo;
-                            txtPR = texto;
-                    }
-                    
-                    //txtLogger.append((++loggerEventID)+".- Lectura de archivo \""+archivo.getName()+"\"\n");
-                    
-                    JOptionPane.showMessageDialog(this,
-                                          "Archivo leído exitosamente",
-                                          "Lectura de archivo", JOptionPane.INFORMATION_MESSAGE);
-                    
-                    reader.close();
-                } catch (IOException x) { errorArchivo(); }
+                loadFile(id, archivo);
             }
             
             else
             {
-                JOptionPane.showMessageDialog(this,
-                                          "Solo se admiten archivos .txt",
-                                          "Error de compatibilidad", JOptionPane.ERROR_MESSAGE);
-                
-                //txtLogger.append((++loggerEventID)+".- Error de formato de archivo\n");
+                msgDial("Solo se admiten archivos .txt", "Error de compatibilidad", JOptionPane.ERROR_MESSAGE);
             }
         }
         
         if(res == JFileChooser.ERROR_OPTION)
-            errorArchivo();        
+            errorArchivo(selectorDeArchivo.getSelectedFile().getName());        
     }
-    
-    private void clearWorkspace()
+
+    private void loadFile(int id, File archivo)
     {
-        listArr.clear();
-        listVar.clear();
-        listCons.clear();
-        arrs.clear();
-        updateArr(null);
-        updateVar(null);
-        updateConst(null);
-        refresh();
-        txtHistorial.setText("");
-        txtOutput.setText("");
-        txtConsola.setText("");
+        try (BufferedReader reader = Files.newBufferedReader(archivo.toPath()))
+        {
+            String line;
+            String texto = "";
+
+            while ((line = reader.readLine()) != null)
+                texto += line+"\n";
+            
+            clearWorkspace();
+            
+            // Guardamos referencia al archivo cargado en programa
+            switch(id)
+            {
+                case 0: // Codigo
+
+                dirCodigo = archivo;
+                panelEditor.setBorder(BorderFactory.createTitledBorder("\""+archivo.getName()+"\""));
+                txtEditor.setText(texto);
+
+                break;
+
+                case 1: // Automata
+
+                dirAuto = archivo;
+                fileTextAutomata = texto;
+                
+                break;
+                // Palabras Reservadas
+                default:
+
+                    dirPR = archivo;
+                    fileTextPR = texto;
+            }
+            
+            msgDial("\""+archivo.getName()+"\""+" leído exitosamente", "Lectura de archivo", JOptionPane.INFORMATION_MESSAGE);
+            
+            reader.close();
+            
+        } catch (IOException x) { errorArchivo(archivo.getName()); }        
     }
     
     private void saveAs()
@@ -710,38 +805,20 @@ public class MainFrame extends JFrame
             }
             
             if(res == JFileChooser.ERROR_OPTION)
-                errorArchivo();
+                errorArchivo(selectorDeArchivo.getSelectedFile().getName());
         }
         
         else
         {
-            JOptionPane.showMessageDialog(this,
-                                          "El archivo a guardar está vacio",
-                                          "Error de Archivo", JOptionPane.ERROR_MESSAGE);
-            //txtLogger.append((++loggerEventID)+".- Archivo no guardado\n");
+            msgDial("El archivo a guardar está vacio", "Error de Archivo", JOptionPane.ERROR_MESSAGE);
         }
-    }
-    
-    private void errorArchivo()
-    {
-        //txtLogger.append((++loggerEventID)+".- Error de lectura de archivo\n");
-        
-        JOptionPane.showMessageDialog(this,
-                    "Ocurrio un problema al acceder al archivo",
-                    "Error de Archivo", JOptionPane.ERROR_MESSAGE);
-    }
-    
-    private boolean isEditorEmpty(){ return txtEditor.getText().trim().isEmpty(); }
+    }    
     
     private void save(File archivo)
     {
         if(!archivo.getName().endsWith(".txt"))
         {
-            //txtLogger.append((++loggerEventID)+".- Error al guardar archivo\n");
-                    
-            JOptionPane.showMessageDialog(this,
-                                          "Solo se admiten archivos .txt",
-                                          "Error de compatibilidad", JOptionPane.ERROR_MESSAGE);
+            msgDial("Solo se admiten archivos .txt", "Error de compatibilidad", JOptionPane.ERROR_MESSAGE);
         }
         
         else
@@ -749,7 +826,7 @@ public class MainFrame extends JFrame
             try (PrintWriter pw = new PrintWriter(new FileWriter(archivo)))
             {
                 String[] result = txtEditor.getText().split("\\n");
-
+                
                 for (String result1 : result)
                     pw.println(result1);
 
@@ -758,31 +835,198 @@ public class MainFrame extends JFrame
                 dirCodigo = archivo;
                 
                 panelEditor.setBorder(BorderFactory.createTitledBorder("\""+archivo.getName()+"\""));
-                //txtLogger.append((++loggerEventID)+".- Archivo \""+archivo.getName()+"\" guardado\n");
+                progTitle = false;
                 
-                JOptionPane.showMessageDialog(this,
-                                              "Archivo guardado exitosamente",
-                                              "Operación de Archivo", JOptionPane.INFORMATION_MESSAGE);
+                msgDial("\""+archivo.getName()+"\""+" guardado exitosamente", "Operación de Archivo", JOptionPane.INFORMATION_MESSAGE);
             }
-            catch (IOException x) { errorArchivo(); }
+            catch (IOException x) { errorArchivo(archivo.getName()); }
         }
     }
     
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    // FUNCIONES DE CARGA Y DIBUJO DE ARREGLOS
+    //
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
     private void setLimits()
     {
-        System.out.println("GraficosLP X: "+graficosLP.getX()+ " GraficosLP Y:"+graficosLP.getY());
-        System.out.println("GraficosLP W: "+graficosLP.getWidth()+ " GraficosLP H:"+graficosLP.getHeight());
+        lienzo.setBounds(X_MARGIN, graficosLP.getY()+Y_MARGIN, graficosLP.getWidth()-WIDTH_MARGIN, graficosLP.getHeight()-HEIGHT_MARGIN);
+    }
+    
+    private void updateArrays()
+    {
+        if(!listArr.isEmpty())
+        {
+            int i = 0, y = -50, ajust = 5, yActivo = -1, nHistoriales;
+            String auxName = "";
+            boolean primero = true;
+            Historial auxHist = new Historial("", new Rectangle(), 0);
+            
+            for(String[] arr : listArr)
+            {
+                // Solo tomamos los arreglos donde estan hay cambios hechos
+                // (numeros pares de arreglos)
+                //if((i%2) == 0)
+                //{
+                    // Sirve para poder diferenciar un arreglo de otro
+                    // y colocarlos en su historial correspondiente
+                    if(!auxName.equals(arr[0]))
+                    {
+                        auxName = arr[0];
+                        auxHist = getHistByName(auxName);
+                        
+                        // Si no existe el historial significa que es de un nuevo arreglo
+                        // por lo tanto creamos su historial
+                        if(auxHist == null)
+                        {
+                            y += 60;
+                            
+                            if(y < lienzo.getBounds().height)
+                            {
+                                histArreglos.add(new Historial(auxName, lienzo.getBounds(), y));
+                                auxHist = histArreglos.peekLast();
+                                primero = true;
+                            }
+                            
+                            else
+                            {
+                                msgDial("No caben más arreglos en la pantalla\n Se mostran solo "+histArreglos.size(),
+                                "Demasiados arrelgos", JOptionPane.WARNING_MESSAGE);
+                            }
+                        }
+                        else
+                        {
+                            yActivo = auxHist.getPosInicial();
+                        }
+                    }
+                    
+                    String values[] = arr[2].split("\\|");
+                    
+                    Arreglo a;
+                    
+                    // Si ya tenemos asignada una medida 'y' para el arreglo
+                    // Es decir este arreglo pertenece a un historial existente
+                    if(yActivo > 0)
+                    {
+                        a = new Arreglo(arr[1], values, yActivo+ajust);
+                        yActivo = -1; // Reseteamos valor
+                    }
+                    
+                    else
+                        a = new Arreglo(arr[1], values, y+ajust);
+                    
+                    if(primero)
+                    {
+                        auxHist.getArrs().add(a);
+                        primero = false;
+                    }
+                    else
+                    {
+                        // Si el arreglo no se repite (es unico) y no es primer elemento del historial
+                        if(uniqueArray(auxHist, a))
+                        {
+                            auxHist.getArrs().add(a);
+                        }
+                    }
+                //}
+                //i++;
+                //if()
+            }
+        }
+    }
+    
+    private void printListArr()
+    {
+        for(String[] elem: listArr)
+        {
+            for(String s : elem)
+                System.out.print(s+" ");
+            
+            System.out.println("\n");
+        }
+    }
+    
+    private Historial getHistByName(String name)
+    {
+        for(Historial h : histArreglos)
+            if(h.getName().equals(name))
+                return h;
         
-        lienzo.setBounds(0, graficosLP.getY(), graficosLP.getWidth(), graficosLP.getHeight());
-        Rectangle bounds = lienzo.getBounds();
+        return null;
+    }
+    
+    // Verificamos que el arreglo no se repita en el historial
+    private boolean uniqueArray(Historial h, Arreglo nuevo)
+    {
+        try
+        {
+            for(Arreglo arr : h.getArrs())
+                if(!arr.printAll().equals(nuevo.printAll()))
+                    return true; // El arreglo nuevo es diferente de los que ya existen
+        }
+        catch(IndexOutOfBoundsException ex){ return false; }
         
-        for(Arreglo a : arrs)
-            a.setBounds(bounds);
-        
+        return false;
+    }
+    
+    private void drawAllArraySets()
+    {
+        lienzo.clear();
+        lienzo.paintStep(step);
+    }
+    
+    private void drawArraySet(int k)
+    {
+        lienzo.clear();
+        lienzo.paintStep(k);
+    }
+
+    private void clearGraphics()
+    {
         graficosLP.removeAll();
-        lienzo.repaint();
+        lienzo.clear();
         graficosLP.add(lienzo, new Integer(0));
     }
+    
+    private int getMaxArrayCount()
+    {
+        int max = -1;
+        
+        for(Historial h: histArreglos)
+        {
+            if(h.getArrs().size() > max)
+                max = h.getArrs().size();
+        }
+        
+        return max;
+    }
+    
+    private String printAllHistoriales()
+    {
+        String out = "";
+        
+        out += "\n--------------------------------------------\n";
+        out += "\nTotalArrays = "+maxArrayN+"\n";
+        
+        for(Historial h : histArreglos)
+        {
+            out += h.getName()+" Y = "+h.getPosInicial()+":\n";
+            
+            for(Arreglo a : h.getArrs())
+                out +=a.printAll();
+        }
+        
+        out += "\n--------------------------------------------\n";
+        
+        return out;
+    }
+    
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    // FUNCIONES DE ACTUALIZACIÓN DE TABLAS E HISTORIAL
+    //
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////// 
     
     public void updateArr(ArrayList<String[]> list)
     {
@@ -794,11 +1038,11 @@ public class MainFrame extends JFrame
             
             for(i = 0; i < listArr.size(); i++)
             {
-                    model[i][0] = listArr.get(i)[0];
-                    model[i][1] = listArr.get(i)[1];
-                    model[i][2] = listArr.get(i)[2];
+                    model[i][0] = listArr.get(i)[0]; // Nombre
+                    model[i][1] = listArr.get(i)[1]; // Tipo
+                    model[i][2] = listArr.get(i)[2]; // Valores
             }
-
+            
             tablaArreglos.setModel(new DefaultTableModel(model, stateColumns));
             tablaArreglos.setFont(new Font("Consolas", Font.PLAIN, 14));
             tablaArreglos.setRowHeight(20);
@@ -881,6 +1125,81 @@ public class MainFrame extends JFrame
         }
     }
     
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    // FUNCIONES AUXILIARES UI
+    //
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////     
+    
+    private void clearWorkspace()
+    {
+        listArr.clear();
+        listVar.clear();
+        listCons.clear();
+        histArreglos.clear();
+        updateArr(null);
+        updateVar(null);
+        updateConst(null);
+        clearGraphics();
+        txtHistorial.setText("");
+        txtOutput.setText("");
+        txtConsola.setText("");
+        progTitle = false;
+        arraysLoaded  = false;
+        maxArrayN = 0;
+    }
+    
+    private void errorArchivo(String name)
+    {
+        msgDial("Ocurrio un problema al acceder al archivo \""+name+"\"", "Error de Archivo", JOptionPane.ERROR_MESSAGE);
+    }
+    
+    private boolean isEditorEmpty(){ return txtEditor.getText().trim().isEmpty(); }
+    
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    // FUNCIONES DE TIMER
+    //
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    private void runTimer(int milis)
+    {
+        timer.setRepeats(true);
+        timer.setDelay(milis);
+        timer.start();
+    }
+    
+    @Override
+    public void actionPerformed(ActionEvent e)
+    {
+        if(e.getSource() instanceof Timer)
+        {
+            nextStep();
+        }
+    }
+    
+    private void nextStep()
+    {
+        if(step++ >= maxArrayN-1)
+        {
+            timer.stop();
+            System.out.println("Final step = "+step+" maxArrayN = "+maxArrayN);
+            step = 0;
+            msgDial("Animación terminada","Animación finalizada", JOptionPane.INFORMATION_MESSAGE);
+            
+            return;
+        }
+        
+        System.out.println(step+" step");
+        drawAllArraySets();
+    }
+    
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    // FUNCIONES DE UTILIDADES PARA EL CONTROLADOR
+    //
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
     public String inputDial(String msg)
     {
         return JOptionPane.showInputDialog(this, msg, "Ingrese valor", JOptionPane.QUESTION_MESSAGE);
@@ -888,35 +1207,32 @@ public class MainFrame extends JFrame
     
     public void msgDial(String msg, String title, int tipe)
     {
-        switch(tipe)
-        {
-            // Info
-            case 0: JOptionPane.showMessageDialog(this, msg, title, JOptionPane.INFORMATION_MESSAGE);
-            break;
-            
-            // Warning
-            case 1: JOptionPane.showMessageDialog(this, msg, title, JOptionPane.WARNING_MESSAGE);
-            break;
-            
-            // Error
-            default: JOptionPane.showMessageDialog(this, msg, title, JOptionPane.ERROR_MESSAGE);
-                                           
-        }
+        JOptionPane.showMessageDialog(this, msg, title, tipe);
     }
-    
-    public void refresh(){ lienzo.repaint(); }
     
     public JTextArea getTxtOutput(){ return txtOutput; }
     public JTextArea getTxtConsola(){ return txtConsola; }
+
+    public boolean isProgTitleSet() { return progTitle; }
+
+    public void setProgTitle(String progTitle)
+    {
+        panelEditor.setBorder(BorderFactory.createTitledBorder("\""+progTitle+"\""));
+        this.progTitle = true;
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLayeredPane graficosLP;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu2;
+    private javax.swing.JMenu jMenu3;
     private javax.swing.JMenuBar jMenuBar1;
+    private javax.swing.JMenuItem jMenuItem1;
     private javax.swing.JMenuItem jMenuItem2;
+    private javax.swing.JMenuItem jMenuItem4;
     private javax.swing.JPopupMenu.Separator jSeparator1;
     private javax.swing.JPopupMenu.Separator jSeparator2;
+    private javax.swing.JPopupMenu.Separator jSeparator3;
     private javax.swing.JMenu mArchivo;
     private javax.swing.JMenu mAyuda;
     private javax.swing.JMenuItem mItCargarAuto;
@@ -926,6 +1242,10 @@ public class MainFrame extends JFrame
     private javax.swing.JMenuItem mItemAcerca;
     private javax.swing.JMenuItem mItemEjecutar;
     private javax.swing.JMenuItem mItemGuardar;
+    private javax.swing.JMenuItem mItemIniciarLento;
+    private javax.swing.JMenuItem mItemIniciarMedio;
+    private javax.swing.JMenuItem mItemIniciarPaso;
+    private javax.swing.JMenuItem mItemIniciarRapido;
     private javax.swing.JMenuItem mItemNuevo;
     private javax.swing.JMenuItem mItemVerAuto;
     private javax.swing.JMenuItem mItemVerPR;
@@ -937,7 +1257,6 @@ public class MainFrame extends JFrame
     private javax.swing.JScrollPane panelHistorial;
     private javax.swing.JScrollPane panelSalida;
     private javax.swing.JScrollPane panelVar;
-    private javax.swing.JPanel tabConfig;
     private javax.swing.JPanel tabEstruct;
     private javax.swing.JTabbedPane tabPaneMain;
     private javax.swing.JPanel tabProgra;

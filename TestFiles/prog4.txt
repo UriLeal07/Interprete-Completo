@@ -1,0 +1,39 @@
+programa pares
+
+constantes  num=5
+  MAX='M'
+
+arreglos valores={534, 789, 212, 4, 8}
+    datos={'n', '9', '0'}
+
+inicio
+   car='1';
+   lee(car);
+   limite=0;
+   datos[1]='c';
+   lim=valores.length-1;
+   si (car=='p') entonces
+	para var=lim hasta 0 paso -1 hacer
+     		par=valores[var] mod 2;
+		si (par!=0) entonces
+			valores[var]=valores[var]+1;
+		fin
+	fin
+   sino
+si (car=='i') entonces
+		para var=lim hasta 0 paso -1 hacer
+     			impar=valores[var] mod 2;
+			si (par==0) entonces
+				valores[var]=valores[var]+1;
+			fin
+		fin
+	sino
+           Escribe('0');
+     fin
+
+     si (datos[limite]=='n')entonces lee(figura); fin
+     final= 10;
+     valorFinal= final +445;
+     valorFinal= 45/final;
+   fin
+ fin

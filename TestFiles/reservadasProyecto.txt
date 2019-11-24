@@ -1,0 +1,16 @@
+programa
+inicio
+fin
+constantes
+arreglos
+para
+hasta
+paso
+hacer
+si
+entonces
+sino
+escribe
+lee
+mod
+length

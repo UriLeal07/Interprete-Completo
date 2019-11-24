@@ -1,0 +1,14 @@
+Programa burbuja
+    Arreglos A={5, 8, 2, 9, 1}
+Inicio
+    Para i=2 hasta A.length paso +1 hacer
+        P= A.length-i;
+        escribe(P);
+        Para j=0 hasta P paso +1 hacer
+            escribe(j);
+            para c= 0 hasta P paso +1 hacer
+            	escribe(c);
+            fin
+        fin
+    fin
+fin

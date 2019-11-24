@@ -1,95 +1,90 @@
 package Vista;
 
 import java.awt.*;
-import java.awt.geom.*;
 import java.util.*;
 
 public class Arreglo
 {
-    private ArrayList <Elemento> Elementos;
-    private String name;
-    private int width;
-    private int height;
+    private final ArrayList <Elemento> elementos;
+    private final String tipe;
+    private final String[] values;
+    private final int yInicial;
+    private final int SPACING = 35; // Espaciado entre elementos del arreglo
+    private final int DIGIT_FACTOR = 5;
     
-    public Arreglo(String name)
+    public Arreglo(String tipe, String[] values, int yInicial)
     {
-        this.name = name;
-        width = 0;
-        height = 0;
-        Elementos = new ArrayList <>();
+        this.tipe = tipe;
+        this.values = values;
+        this.yInicial = yInicial;
+        
+        elementos = new ArrayList <>();
+        
+        fillArray();
     }
     
-    public int add(int x, int y, int valor, String name)
+    private void fillArray()
     {
-        Elemento c = new Elemento(name, valor, x, y);
+        int x = 0, width;
         
-        Elementos.add(c);        
-        
-        return 0;
+        for(String value : values)
+        {
+            width = SPACING+dinamicDim(value.length());
+            add(value, dinamicDim(value.length()), x, yInicial, width, SPACING);
+            x += width;
+        }
     }
     
-    public int delete(String name)
+    private int dinamicDim(int nDigits)
     {
-        for(Elemento c : Elementos)
-            if(c.getNombre().equals(name))
+        return (nDigits-1)*DIGIT_FACTOR;
+    }
+    
+    public void add(String val, int length,  int x, int y, int width, int height)
+    {
+        Elemento c = new Elemento(val, length, x, y, width, height);
+        
+        elementos.add(c);
+    }
+    
+    public int delete(String val)
+    {
+        for(Elemento c : elementos)
+            if(c.getVal().equals(val))
             {
-                Elementos.remove(c);
+                elementos.remove(c);
                 return 0;
             }
         
-        return -4;
+        return -1;
     }
     
     public String printAll()
     {
-        String cad = " ";
+        String cad = "";
         
-        for(Elemento v: Elementos)
-            cad += v.getNombre()+" , ";
+        for(Elemento v: elementos)
+            cad += v.getVal()+" ";
         
         return cad;
     }
 
     public void draw(Graphics2D g2)
     {
-        // Pintamos los caras
-        for(Elemento c : Elementos)
-	    c.dibujar(g2);
+        for(Elemento c : elementos)
+	    c.draw(g2);
     }
     
     public void clear(Lienzo l)
     {
-        Elementos.clear();
+        elementos.clear();
         l.repaint();
-    }
-    
-    public boolean testColision(Rectangle2D a, Rectangle2D b)
-    {
-        if((b.getMaxY() < a.getMinY()) || (b.getMinY() > a.getMaxY()))
-            return false;
-        
-        if((b.getMaxX() < a.getMinX()) || (b.getMinX() > a.getMaxX()))
-            return false;
-        
-        return true;
-    }
-    
-    private boolean testColision(Shape shapeA, Shape shapeB)
-    {
-        Area areaA = new Area(shapeA);
-        Area areaB = new Area(shapeB);
-        
-        return (areaA.intersects(areaB.getBounds2D()));
     }
     
     public void reset()
     {
-        Elementos.clear();
+        elementos.clear();
     }
     
-    public ArrayList <Elemento> getElementos() { return Elementos; }
-    
-    public void setBounds(Rectangle r){ height = r.height; width = r.width; }
-    public void setHeight(int height){ this.height = height; }
-    public void setWidth(int width){ this.width = width; }
+    public ArrayList <Elemento> getElementos() { return elementos; }
 }

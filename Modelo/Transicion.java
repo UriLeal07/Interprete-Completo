@@ -1,6 +1,6 @@
 package Modelo;
 
-public class Transicion {
+public class Transicion{
     public String x;
     public String y;
     public String value;

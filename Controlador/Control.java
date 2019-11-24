@@ -4,6 +4,7 @@ import Modelo.AFDVault;
 import Modelo.ParserException;
 import Modelo.Sintactico;
 import Vista.MainFrame;
+import java.awt.Color;
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -43,17 +44,33 @@ public class Control
         for(int i=0;i<cod.length;i++) 
             afd.validaSt(cod[i],(i+1));
         
-        printConsola("\n-------------------------------------------------");
+        printConsola("-------------------------------------------------");
         Sintactico analsin = new Sintactico(afd);
         analsin.Iniciar();
-        printConsola("\nAnalisis finalizado");
+        printConsola("\nAnálisis finalizado");
     }
     
-    //public void setError(String err) { mFrame.getTxtError().setText(err); }
-    
-    public void printOutput(String out) { mFrame.getTxtOutput().append(out+"\n"); }
+    public void printOutput(String out)
+    {
+        if(out.startsWith("'"))
+        {
+            if(out.charAt(1) == ' ')
+                mFrame.getTxtOutput().append("\n");
+            else
+                mFrame.getTxtOutput().append(""+out.charAt(1));
+        }
+        else
+            mFrame.getTxtOutput().append(out+" ");
+    }
     
     public void printConsola(String out) { mFrame.getTxtConsola().append(out+"\n"); }
+    
+    public void printMsgError(String err)
+    {
+        mFrame.getTxtOutput().setForeground(Color.RED);
+        mFrame.getTxtOutput().append(err+"\n");
+        mFrame.getTxtOutput().setForeground(Color.BLACK);
+    }
     
     public void printArreglos(ArrayList<String[]> valores) { mFrame.updateArr(valores); };
     
@@ -61,17 +78,13 @@ public class Control
     
     public void printVar(ArrayList<String[]> valores) { mFrame.updateVar(valores); };
     
-    public void setTitulo(String title) { System.out.println("Pon titulo"+title); }
+    public void setTitulo(String title)
+    {
+        if(!mFrame.isProgTitleSet())
+            mFrame.setProgTitle(title);
+    }
     
     public String requestInput(String message) { return mFrame.inputDial(message); }
     
-    public void setMsgError(String msg, String title, int tipo) { mFrame.msgDial(msg, title, tipo); }
-    /*
-    public void printOutError(String out)
-    {
-        mFrame.getTxtOutput().setForeground(Color.red);
-        mFrame.getTxtOutput().append(out+"\n");
-        
-        mFrame.getTxtError().setText(out);
-    }*/
+    //public void setMsgBox(String msg, String title, int tipo) { mFrame.msgDial(msg, title, tipo); }
 }

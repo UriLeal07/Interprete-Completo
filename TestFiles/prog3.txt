@@ -1,0 +1,32 @@
+PROGRAMA ejemplo
+   constantes num=5
+
+    Arreglos
+    valores={5, 7, 2, 4, 8}
+    datos={'a','b','c','d','e'}
+
+inicio
+    car='1';
+    escribe(datos[0]);
+    escribe(datos[1]);
+    escribe(datos[2]);
+    escribe(datos[3]);
+    escribe(datos[4]);
+    datos[1] = datos[valores[2]];
+    escribe(datos[1]);
+    test= valores.length;
+    escribe(test);
+    otro= datos.length;
+    escribe(otro);
+    escribe(datos.length);
+    si (5 == num)entonces
+       escribe('H');
+      escribe('o');
+      escribe('l');
+      escribe('a');
+      escribe('M');
+      escribe('i');
+      escribe('s');
+      escribe('a');
+    fin
+fin

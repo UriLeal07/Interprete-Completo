@@ -25,7 +25,7 @@ public class Finales {
             int value = Integer.valueOf(edo);
             return estados.contains(value);
         }catch (NumberFormatException e){
-            throw new ParserException("Se esperaba un numero entero");
+            throw new ParserException("Token no válido");
         }
     }
 

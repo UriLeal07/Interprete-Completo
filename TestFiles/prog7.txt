@@ -1,0 +1,29 @@
+PROGRAMA BURBUJAMEJORADA
+    CONSTANTES
+        NUM=23
+        CAR='X'
+    ARREGLOS
+        DATOS={5,2,3,1,0}
+INICIO
+    escribe(DATOS[0]);
+    escribe(DATOS[1]);
+    escribe(DATOS[2]);
+    escribe(DATOS[3]);
+    escribe(DATOS[4]);
+    PARA i=0 hasta DATOS.length PASO +1 HACER
+         LIM= i;
+         PARA j=0 hasta LIM  PASO +1 HACER
+              SI(DATOS[i] < DATOS[j])entonces
+              	    AUX= DATOS[j];
+                    DATOS[j]= DATOS[i];
+                    DATOS[i] = AUX;
+              FIN
+         FIN
+    FIN
+    escribe('r');
+    escribe(DATOS[0]);
+    escribe(DATOS[1]);
+    escribe(DATOS[2]);
+    escribe(DATOS[3]);
+    escribe(DATOS[4]);
+FIN

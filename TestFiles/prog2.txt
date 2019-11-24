@@ -1,0 +1,12 @@
+Programa burbuja
+    Arreglos A={5, 8, 2, 9, 1}
+Inicio
+    Para i=2 hasta A.length paso +1 hacer
+        p= A.length-i;
+        Para j=0 hasta p paso +1 hacer
+            Si (A[j] > A[j+1]) entonces
+                aux=A[j]; A[j]=A[j+1]; A[j+1]=aux
+            fin
+        fin
+    fin
+fin

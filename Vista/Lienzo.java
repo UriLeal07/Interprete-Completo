@@ -1,17 +1,19 @@
 package Vista;
 
 import java.awt.*;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import javax.swing.*;
 
 public class Lienzo extends JPanel
 {
-    private ArrayList<Arreglo> arrs;
+    private final LinkedList <Historial> hist;
+    protected int step;
     
-    public Lienzo(ArrayList<Arreglo> g1)
+    public Lienzo(LinkedList <Historial> hist)
     {
 	//setLayout(null); // Quitamos gestor de distribucion
-	arrs = g1;
+	this.hist = hist;
+        step = -1;
     }
     
     @Override
@@ -21,13 +23,21 @@ public class Lienzo extends JPanel
 	Graphics2D g2 = (Graphics2D)g;
 	setBackground(Color.white);
         
-        for(Arreglo a : arrs)
-            a.draw(g2);
+        if(step >= 0)
+        {
+            for(Historial h : hist)
+                h.drawOne(g2, step);
+        }
     }
     
-    public void limpiar(ArrayList<Arreglo> arrs)
+    public void paintStep(int step)
     {
-	this.arrs = arrs;
+	this.step = step;
+    }
+    
+    public void clear()
+    {
+        step = -1;
 	repaint();
     }
 }

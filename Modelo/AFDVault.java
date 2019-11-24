@@ -22,7 +22,7 @@ public class AFDVault
     private Finales edosFinales = new Finales();
     private Boolean ready = false, bandRetroceso=false;
     LinkedList<Tokens> tokens = new LinkedList<>();
-    private String error= "\nError Lexico: ";
+    private String error = "Error Lexico: ";
 
     public AFDVault(Control c, String path) throws IOException, ParserException 
     {
@@ -217,13 +217,19 @@ public class AFDVault
         while (!flag && i < ncaracter.length){
             String aux= String.valueOf(ncaracter[i]);
             String res= ValidaTrans(EdoActual, aux);
-            if(res.isEmpty()){
+            if(res.isEmpty())
+            {
                 flag=true;
                 if(cadena.endsWith("¬"))
-                    c.printConsola(error+"El caracter \""+ aux+ "\" en la posicion "+ (i+1) + " linea "+linea+" no es valido.");
+                {
+                    c.printConsola(error+"El caracter \""+ aux+ "\" en la posicion "+ (i+1) + " linea "+linea+" no es valido.\n");
+                    throw new ParserException(error+"El caracter \""+ aux+ "\" en la posicion "+ (i+1) + " linea "+linea+" no es valido.");
+                }
                 else
-                	c.printConsola(error+"El caracter \""+ aux+ "\" en la posicion "+ (i+1) + " linea "+linea+" no es valido.");
-                throw new ParserException("");
+                {
+                    c.printConsola(error+"El caracter \""+ aux+ "\" en la posicion "+ (i+1) + " linea "+linea+" no es valido.\n");
+                    throw new ParserException(error+"El caracter \""+ aux+ "\" en la posicion "+ (i+1) + " linea "+linea+" no es valido.");
+                }
             }
             EdoActual=res;
             try {
@@ -243,14 +249,14 @@ public class AFDVault
                         String isReservada = buscaReservadas(cadena.substring(apuntador, (i + retroceso)).trim().toLowerCase());
                         if (!isReservada.isEmpty()) {
                             //Interfaz.textSalida.append("\napun:"+apuntador+" retroc: "+ (i+retroceso)+"apun i:"+i);
-                            c.printConsola("\n {" + "PR" + ", " + isReservada + ", " + "linea: " + linea + "}");
+                            c.printConsola("{" + "PR" + ", " + isReservada + ", " + "linea: " + linea + "}\n");
                             //retrocesoI=retrocesoI+(cadena.substring(apuntador,(i+retroceso)).length()-isReservada.length());
                             //apuntador=apuntador+isReservada.length();
                             tokens.add(new Tokens("PR",isReservada,linea));
 
                         } else {
                             //Interfaz.textSalida.append("\napun:"+apuntador+" retroc: "+ (i+retroceso)+"apun i:"+i);
-                            c.printConsola("\n {" + edosFinales.valores.get(edosFinales.estados.indexOf(Integer.parseInt(EdoActual))) + ", " + cadena.substring(apuntador, (i + retroceso)) + ", " + "linea: " + linea + "}");
+                            c.printConsola("{" + edosFinales.valores.get(edosFinales.estados.indexOf(Integer.parseInt(EdoActual))) + ", " + cadena.substring(apuntador, (i + retroceso)) + ", " + "linea: " + linea + "}\n");
                             tokens.add(new Tokens(edosFinales.valores.get(edosFinales.estados.indexOf(Integer.parseInt(EdoActual))),cadena.substring(apuntador, (i + retroceso)),linea));
                             apuntador = (i + retroceso);
                         }
@@ -258,7 +264,7 @@ public class AFDVault
 
                     } else {
                         //Interfaz.textSalida.append("\napun:"+apuntador+" retroc: "+ (i+retroceso)+"apun i:"+i);
-                        c.printConsola("\n {" + edosFinales.valores.get(edosFinales.estados.indexOf(Integer.parseInt(EdoActual))) + ", " + cadena.substring(apuntador, (i + retroceso)) + ", " + "linea: " + linea + "}");
+                        c.printConsola("{" + edosFinales.valores.get(edosFinales.estados.indexOf(Integer.parseInt(EdoActual))) + ", " + cadena.substring(apuntador, (i + retroceso)) + ", " + "linea: " + linea + "}\n");
                         tokens.add(new Tokens(edosFinales.valores.get(edosFinales.estados.indexOf(Integer.parseInt(EdoActual))),cadena.substring(apuntador, (i + retroceso)),linea));
                     }
 
@@ -268,17 +274,25 @@ public class AFDVault
                     //tokens.add(new Tokens(EdoActual,))
                     EdoActual = "0";
                 }
-            }catch(ParserException ex){
-                c.printConsola(error+"En el caracter \""+ aux+ "\" en la posicion "+ (i+1) +" linea "+linea +" "+ex.getMessage());
-                throw new ParserException("");
+            }catch(ParserException ex)
+            {
+                if(ex.getMessage().equals("Token no válido"))
+                {
+                    c.printConsola(error+" linea "+linea +" "+ex.getMessage()+"\n");
+                    throw new ParserException(error+" linea "+linea +" "+ex.getMessage());
+                }
+                else
+                {
+                    c.printConsola(error+"En el caracter \""+ aux+ "\" en la posicion "+ (i+1) +" linea "+linea +" "+ex.getMessage()+"\n");
+                    throw new ParserException(error+"En el caracter \""+ aux+ "\" en la posicion "+ (i+1) +" linea "+linea +" "+ex.getMessage());
+                }
             }
             i++;
-
         }
-       
     }
 
-    private String buscaReservadas(String palabra) {
+    private String buscaReservadas(String palabra)
+    {
     	 Set<String> set = new HashSet<String>(palabrasReservadas);
     	 if(set.contains(palabra))
     		 return palabra;
@@ -291,7 +305,6 @@ public class AFDVault
     		 }
     		 	
     	 }*/
-    	 
 		return aux;
 	}
 

@@ -4,7 +4,8 @@ import Controlador.Control;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
-public class Semantico {
+public class Semantico
+{
     public String nombrePrograma;
     public LinkedList<Variables> tabla;
     private Control c;
@@ -78,25 +79,6 @@ public class Semantico {
         }
         return "";
     }
-/*
-    public void printtabla(){
-        for(Variables lista: tabla) {
-            if(lista.isArreglo){
-                System.out.println("Es Arreglo");
-                System.out.println("Nombre: "+lista.nombre +" Tipo: "+lista.tipo);
-                System.out.println("Values: "+lista.printvalues());
-            }else{
-                if(lista.isConstante){
-                    System.out.println("Es constante");
-                    System.out.println("Nombre: "+lista.nombre +" Tipo: "+lista.tipo +" Valor:" + lista.value);
-                }else{
-                    System.out.println("Es variable");
-                    System.out.println("Nombre: "+lista.nombre +" Tipo: "+lista.tipo +" Valor:" + lista.value);
-                }
-            }
-        }
-    }
-    */
     
     public ArrayList<String[]> getConstantes() {
     	ArrayList<String[]> aux = new ArrayList<>();
@@ -134,48 +116,18 @@ public class Semantico {
     	return aux;
     }
     
-    
-    public void constantesInterfaz() {
-    	/*ArrayList<String[]> aux;
-    	aux = this.getConstantes();
-    	String[][] valores= new String[aux.size()][3];
-    	
-    	for(int i=0;i<aux.size();i++) {
-    		valores[i][0]=aux.get(i)[0];
-    		valores[i][1]=aux.get(i)[1];
-    		valores[i][2]=aux.get(i)[2];
-    	}*/
-        
+    public void constantesInterfaz()
+    {
         c.printConst(this.getConstantes());
     }
     
-    public void arreglosInterfaz(String msg) {
-    	/*ArrayList<String[]> aux;
-    	aux = this.getArreglos();
-    	String[][] valores = new String[aux.size()][3];
-    	
-    	for(int i=0;i<aux.size();i++)
-        {
-    		valores[i][0]=aux.get(i)[0];
-    		valores[i][1]=aux.get(i)[1];
-    		valores[i][2]=aux.get(i)[2];
-    	}*/
-        
+    public void arreglosInterfaz(String msg)
+    {
         c.printArreglos(this.getArreglos());
-   }
+    }
     
-
-    public void variablesInterfaz(String msg) {
-    	/*ArrayList<String[]> aux;
-    	aux= this.getVariables();
-    	String[][] valores= new String[aux.size()][3];
-    	
-    	for(int i=0;i<aux.size();i++) {
-    		valores[i][0]=aux.get(i)[0];
-    		valores[i][1]=aux.get(i)[1];
-    		valores[i][2]=aux.get(i)[2];
-    	}*/
-        
+    public void variablesInterfaz(String msg)
+    {
         c.printVar(this.getVariables());
-   }
+    }
 }

@@ -1,0 +1,14 @@
+PROGRAMA EJEMPLO
+    CONSTANTES
+        NUM=23
+        CAR='X'
+    ARREGLOS
+        DATOS={3,2,1,0}
+INICIO
+    ESCRIBE('A');
+    SI (DATOS.LENGTH >1) ENTONCES
+        PARA var=1 HASTA DATOS.LENGTH PASO +1 HACER
+            ESCRIBE(DATOS[2]);
+        FIN
+    FIN
+FIN

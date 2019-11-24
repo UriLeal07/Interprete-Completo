@@ -1,0 +1,59 @@
+PROGRAMA BURBUJA_2
+    CONSTANTES
+        NUM=23
+        CAR='X'
+    ARREGLOS
+        DATOS={4,2,9,1,0}
+		ARR2={13,05,8,100,8537}
+		NAME={'L','é','x','i','c','o'}
+		OTRO={'P','r','o','g','r','a'}
+INICIO
+    PARA i=0 hasta DATOS.length PASO +1 HACER
+         LIM= i;
+         PARA j=0 hasta LIM  PASO +1 HACER
+              SI(DATOS[i] < DATOS[j]) entonces
+              	    AUX= DATOS[j];
+                    DATOS[j] = DATOS[i];
+					ARR2[i] = DATOS[j];
+                    DATOS[i] = AUX;
+              FIN
+         FIN
+    FIN
+
+    PARA i=0 hasta OTRO.length PASO +1 HACER
+		OTRO[i] = NAME[i];
+		NAME[i] = ' ';
+    FIN
+
+	escribe(DATOS[0]);
+	escribe(DATOS[1]);
+	escribe(DATOS[2]);
+	escribe(DATOS[3]);
+	escribe(DATOS[4]);
+	escribe(' ');
+	escribe(NAME[0]);
+	escribe(NAME[1]);
+	escribe(NAME[2]);
+	escribe(NAME[3]);
+	escribe(NAME[4]);
+	escribe(NAME[5]);
+	NAME[0]='P';
+	NAME[1]='r';
+	NAME[2]='o';
+	NAME[3]='g';
+	NAME[4]='r';
+	NAME[5]='a';
+	escribe(' ');
+	escribe(ARR2[0]);
+	escribe(ARR2[1]);
+	escribe(ARR2[2]);
+	escribe(ARR2[3]);
+	escribe(ARR2[4]);
+	escribe(' ');
+	escribe(NAME[0]);
+	escribe(NAME[1]);
+	escribe(NAME[2]);
+	escribe(NAME[3]);
+	escribe(NAME[4]);
+	escribe(NAME[5]);
+FIN

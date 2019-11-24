@@ -20,6 +20,5 @@ public class ParasControl {
         for(Tokens inst : instrucciones){
             res=res.concat(inst.secuencia+"|");
         }
-        //System.out.println(res);
     }
 }
