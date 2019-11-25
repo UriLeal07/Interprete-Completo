@@ -6,19 +6,23 @@ import java.util.*;
 public class Arreglo
 {
     private final ArrayList <Elemento> elementos;
+    private final Font font;
     private final String tipe;
+    private final String line;
     private final String[] values;
     private final int yInicial;
     private final int SPACING = 35; // Espaciado entre elementos del arreglo
     private final int DIGIT_FACTOR = 5;
     
-    public Arreglo(String tipe, String[] values, int yInicial)
+    public Arreglo(String tipe, String[] values, String line, int yInicial)
     {
         this.tipe = tipe;
         this.values = values;
+        this.line = line;
         this.yInicial = yInicial;
         
         elementos = new ArrayList <>();
+        font = new Font("Consolas", Font.BOLD, 14);
         
         fillArray();
     }
@@ -33,6 +37,18 @@ public class Arreglo
             add(value, dinamicDim(value.length()), x, yInicial, width, SPACING);
             x += width;
         }
+    }
+    
+    private int totalWidth()
+    {
+        int width = 0;
+        
+        for(String value : values)
+        {
+            width += SPACING+dinamicDim(value.length());
+        }
+        
+        return width;
     }
     
     private int dinamicDim(int nDigits)
@@ -69,10 +85,16 @@ public class Arreglo
         return cad;
     }
 
-    public void draw(Graphics2D g2)
+    public void draw(Graphics2D g2, Color color)
     {
+        g2.setFont(font);
+        g2.setPaint(Color.BLACK);
+        g2.drawString("Linea:", totalWidth()+10, yInicial);
+        g2.setPaint(Color.RED);
+        g2.drawString(line, totalWidth()+65, yInicial);
+        
         for(Elemento c : elementos)
-	    c.draw(g2);
+	    c.draw(g2, color);
     }
     
     public void clear(Lienzo l)

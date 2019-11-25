@@ -2,6 +2,7 @@ package Vista;
 
 import Controlador.Control;
 import Modelo.ParserException;
+import java.awt.Color;
 import java.awt.Font;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
@@ -63,6 +64,7 @@ public class MainFrame extends JFrame implements ActionListener
     private int step;
     private Timer timer;
     private int maxArrayN;
+    private Color color;
 
     public MainFrame()
     {
@@ -109,6 +111,7 @@ public class MainFrame extends JFrame implements ActionListener
         progTitle = false;
         arraysLoaded = false;
         timer = new Timer(2000, this);
+        color = Color.BLUE;
         clearGraphics();
     }
     
@@ -603,6 +606,9 @@ public class MainFrame extends JFrame implements ActionListener
             return;
         }
         
+        if(timer.isRunning())
+            timer.stop();
+        
         try
         {
             control.cargarAuto(dirAuto.getAbsolutePath());
@@ -611,14 +617,15 @@ public class MainFrame extends JFrame implements ActionListener
             clearWorkspace();
             control.start(dirAuto.getAbsolutePath(), txtEditor.getText());
             
+            step = 0;
             setLimits();
             printListArr();
             updateArrays();
             
             arraysLoaded = true;
             maxArrayN = getMaxArrayCount();
-            drawArraySet(0);
-            System.out.println(printAllHistoriales());
+            drawArraySet(0, Color.BLACK);
+            System.out.print(printAllHistoriales());
         }
         catch(IOException ie)
         {
@@ -858,7 +865,7 @@ public class MainFrame extends JFrame implements ActionListener
     {
         if(!listArr.isEmpty())
         {
-            int i = 0, y = -50, ajust = 5, yActivo = -1, nHistoriales;
+            int i = 0, y = -50, ajust = 5, yActivo = -1;
             String auxName = "";
             boolean primero = true;
             Historial auxHist = new Historial("", new Rectangle(), 0);
@@ -909,12 +916,12 @@ public class MainFrame extends JFrame implements ActionListener
                     // Es decir este arreglo pertenece a un historial existente
                     if(yActivo > 0)
                     {
-                        a = new Arreglo(arr[1], values, yActivo+ajust);
+                        a = new Arreglo(arr[1], values, arr[3], yActivo+ajust);
                         yActivo = -1; // Reseteamos valor
                     }
                     
                     else
-                        a = new Arreglo(arr[1], values, y+ajust);
+                        a = new Arreglo(arr[1], values, arr[3], y+ajust);
                     
                     if(primero)
                     {
@@ -943,8 +950,10 @@ public class MainFrame extends JFrame implements ActionListener
             for(String s : elem)
                 System.out.print(s+" ");
             
-            System.out.println("\n");
+            System.out.println();
         }
+        
+        System.out.println();
     }
     
     private Historial getHistByName(String name)
@@ -958,28 +967,32 @@ public class MainFrame extends JFrame implements ActionListener
     
     // Verificamos que el arreglo no se repita en el historial
     private boolean uniqueArray(Historial h, Arreglo nuevo)
-    {
+    {       
         try
         {
             for(Arreglo arr : h.getArrs())
-                if(!arr.printAll().equals(nuevo.printAll()))
-                    return true; // El arreglo nuevo es diferente de los que ya existen
+            {
+                if(arr.printAll().equals(nuevo.printAll()))
+                {
+                    return false;
+                }
+            }
         }
         catch(IndexOutOfBoundsException ex){ return false; }
         
-        return false;
+        return true;
     }
     
-    private void drawAllArraySets()
+    private void drawAllArraySets(Color color)
     {
         lienzo.clear();
-        lienzo.paintStep(step);
+        lienzo.paintStep(step, color);
     }
     
-    private void drawArraySet(int k)
+    private void drawArraySet(int k, Color color)
     {
         lienzo.clear();
-        lienzo.paintStep(k);
+        lienzo.paintStep(k, color);
     }
 
     private void clearGraphics()
@@ -1014,7 +1027,7 @@ public class MainFrame extends JFrame implements ActionListener
             out += h.getName()+" Y = "+h.getPosInicial()+":\n";
             
             for(Arreglo a : h.getArrs())
-                out +=a.printAll();
+                out +=a.printAll()+"\n";
         }
         
         out += "\n--------------------------------------------\n";
@@ -1180,18 +1193,24 @@ public class MainFrame extends JFrame implements ActionListener
     
     private void nextStep()
     {
+        Color color;
+        
+        if(step == 0)
+            color = Color.BLACK;
+        else
+            color = this.color;
+        
         if(step++ >= maxArrayN-1)
         {
             timer.stop();
-            System.out.println("Final step = "+step+" maxArrayN = "+maxArrayN);
             step = 0;
-            msgDial("Animación terminada","Animación finalizada", JOptionPane.INFORMATION_MESSAGE);
+            drawArraySet(maxArrayN, Color.BLACK);
+            msgDial("Animación terminada con éxito","Animación finalizada", JOptionPane.INFORMATION_MESSAGE);
             
             return;
         }
         
-        System.out.println(step+" step");
-        drawAllArraySets();
+        drawAllArraySets(color);
     }
     
     //////////////////////////////////////////////////////////////////////////////////////////////////////////

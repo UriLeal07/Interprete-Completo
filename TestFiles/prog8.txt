@@ -25,24 +25,18 @@ INICIO
 		NAME[i] = ' ';
     FIN
 
-	escribe(DATOS[0]);
-	escribe(DATOS[1]);
-	escribe(DATOS[2]);
-	escribe(DATOS[3]);
-	escribe(DATOS[4]);
-	escribe(' ');
-	escribe(NAME[0]);
-	escribe(NAME[1]);
-	escribe(NAME[2]);
-	escribe(NAME[3]);
-	escribe(NAME[4]);
-	escribe(NAME[5]);
 	NAME[0]='P';
 	NAME[1]='r';
 	NAME[2]='o';
 	NAME[3]='g';
 	NAME[4]='r';
 	NAME[5]='a';
+
+	escribe(DATOS[0]);
+	escribe(DATOS[1]);
+	escribe(DATOS[2]);
+	escribe(DATOS[3]);
+	escribe(DATOS[4]);
 	escribe(' ');
 	escribe(ARR2[0]);
 	escribe(ARR2[1]);
@@ -56,4 +50,11 @@ INICIO
 	escribe(NAME[3]);
 	escribe(NAME[4]);
 	escribe(NAME[5]);
+	escribe(' ');
+	escribe(OTRO[0]);
+	escribe(OTRO[1]);
+	escribe(OTRO[2]);
+	escribe(OTRO[3]);
+	escribe(OTRO[4]);
+	escribe(OTRO[5]);
 FIN

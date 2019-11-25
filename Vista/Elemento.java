@@ -32,10 +32,10 @@ public class Elemento
         font = new Font("Consolas", Font.BOLD, 14);
     }
     
-    public void draw(Graphics2D g2)
+    public void draw(Graphics2D g2, Color color)
     {
         // Dibuja cuadrado (casilla/cuadrado)
-        g2.setPaint(colorLine);
+        g2.setPaint(color);
         g2.drawRect(rX, rY, rWidth, rHeight);
         
         // Dibuja valor (dentro de la casilla/cuadrado)

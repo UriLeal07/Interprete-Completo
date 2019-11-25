@@ -7,13 +7,15 @@ import javax.swing.*;
 public class Lienzo extends JPanel
 {
     private final LinkedList <Historial> hist;
-    protected int step;
+    private int step;
+    protected Color color;
     
     public Lienzo(LinkedList <Historial> hist)
     {
 	//setLayout(null); // Quitamos gestor de distribucion
 	this.hist = hist;
         step = -1;
+        color = Color.BLACK;
     }
     
     @Override
@@ -26,18 +28,20 @@ public class Lienzo extends JPanel
         if(step >= 0)
         {
             for(Historial h : hist)
-                h.drawOne(g2, step);
+                h.drawOne(g2, step, color);
         }
     }
     
-    public void paintStep(int step)
+    public void paintStep(int step, Color color)
     {
 	this.step = step;
+        this.color = color;
     }
     
     public void clear()
     {
         step = -1;
+        color = Color.BLACK;
 	repaint();
     }
 }

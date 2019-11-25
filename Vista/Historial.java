@@ -23,17 +23,17 @@ public class Historial
         font = new Font("Consolas", Font.BOLD, 14);
     }
     
-    public void drawOne(Graphics2D g2, int nArray)
+    public void drawOne(Graphics2D g2, int nArray, Color color)
     {
         g2.setFont(font);
         g2.setPaint(Color.BLACK);
         g2.drawString(name, 10, posInicial);
         
         if(nArray < arrs.size())
-            arrs.get(nArray).draw(g2);
+            arrs.get(nArray).draw(g2, color);
         
         else
-            arrs.get(arrs.size()-1).draw(g2);
+            arrs.get(arrs.size()-1).draw(g2, color);
         
     }
     

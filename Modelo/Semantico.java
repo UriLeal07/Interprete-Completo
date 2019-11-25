@@ -95,9 +95,11 @@ public class Semantico
     public ArrayList<String[]> getArreglos()
     {
     	ArrayList<String[]> aux = new ArrayList<>();
-    	for(Variables lista: tabla) {
+        
+    	for(Variables lista: tabla)
+        {
     		if(lista.isArreglo){
-    			String[] row= {lista.nombre, lista.tipo, lista.printvalues()};
+    			String[] row = {lista.nombre, lista.tipo, lista.printvalues(), String.valueOf(lista.pos)};
     			aux.add(row);
     		}
     	}
