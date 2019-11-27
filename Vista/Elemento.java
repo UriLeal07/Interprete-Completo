@@ -5,9 +5,11 @@ import java.awt.*;
 public class Elemento
 {
     private String val;
+    private BasicStroke strong = new BasicStroke(2.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
+    private BasicStroke light = new BasicStroke(1.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
     private final Font font;
-    private final Color colorLine;
-    private final Color colorFont;
+    private Color colorLine;
+    private Color colorFont;
     private final int rX;
     private final int rY;
     private final int rWidth;
@@ -16,7 +18,7 @@ public class Elemento
     private final int centerY;
     private final int X_MARGIN = 5;
     
-    public Elemento(String val, int length, int rX, int rY, int width, int height)
+    public Elemento(String val, int length, int rX, int rY, int width, int height, Color color)
     {
         this.val = val;
         this.rX = rX+X_MARGIN;
@@ -27,17 +29,26 @@ public class Elemento
         centerX = this.rX+(width/2)-length;
         centerY = rY+(height/2);
         
-        colorLine = Color.BLACK;
-        colorFont = Color.BLACK;
+        colorLine = color;
+        colorFont = color;
         font = new Font("Consolas", Font.BOLD, 14);
     }
     
     public void draw(Graphics2D g2, Color color)
     {
+        if(color != null)
+            colorLine = color;
+        
+        if(colorLine != Color.BLACK)
+            g2.setStroke(strong);
+        else
+            g2.setStroke(light);
+        
         // Dibuja cuadrado (casilla/cuadrado)
-        g2.setPaint(color);
+        g2.setPaint(colorLine);
         g2.drawRect(rX, rY, rWidth, rHeight);
         
+        g2.setStroke(light);
         // Dibuja valor (dentro de la casilla/cuadrado)
         g2.setPaint(colorFont);
         g2.setFont(font);

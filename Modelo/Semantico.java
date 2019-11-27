@@ -52,6 +52,7 @@ public class Semantico
                 if(match.isArreglo){
                     return "No se puede modificar un arreglo";
                 }
+                //aux.indexsel = tabla.indexOf(match);
                 tabla.set(tabla.indexOf(match),aux);
             }else{
                 tabla.add(aux);
@@ -99,7 +100,8 @@ public class Semantico
     	for(Variables lista: tabla)
         {
     		if(lista.isArreglo){
-    			String[] row = {lista.nombre, lista.tipo, lista.printvalues(), String.valueOf(lista.pos)};
+    			String[] row = {lista.nombre, lista.tipo, lista.printvalues(),
+                                        String.valueOf(lista.pos), String.valueOf(lista.indexsel)};
     			aux.add(row);
     		}
     	}

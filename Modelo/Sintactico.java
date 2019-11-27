@@ -51,7 +51,8 @@ public class Sintactico
     }
 
     public void B() throws ParserException {
-        if (token.token.equals("PR")) {
+        if (token.token.equals("PR"))
+        {
             if (token.secuencia.equals("constantes")) {
                 Emparejar("constantes");
                 Cons();

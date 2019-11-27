@@ -13,12 +13,14 @@ public class Historial
     private Rectangle bounds;
     private final Font font;
     private final int posInicial;
+    private final Color color;
     
-    public Historial(String name, Rectangle bounds, int posInicial)
+    public Historial(String name, Rectangle bounds, int posInicial, Color color)
     {
         this.name = name;
         this.bounds = bounds;
         this.posInicial = posInicial;
+        this.color = color;
         arrs = new ArrayList<>();
         font = new Font("Consolas", Font.BOLD, 14);
     }
@@ -37,6 +39,7 @@ public class Historial
         
     }
     
+    public Color getColor() { return color; }
     public int getPosInicial() { return posInicial; }
     
     public String getName() { return name; }

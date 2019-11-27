@@ -11,10 +11,10 @@ public class Arreglo
     private final String line;
     private final String[] values;
     private final int yInicial;
-    private final int SPACING = 35; // Espaciado entre elementos del arreglo
-    private final int DIGIT_FACTOR = 5;
+    public final static int SPACING = 35;          // Espaciado entre elementos del arreglo
+    public final static int DIGIT_FACTOR = 5;
     
-    public Arreglo(String tipe, String[] values, String line, int yInicial)
+    public Arreglo(String tipe, String[] values, String line, int index, Color colorIndex, int yInicial)
     {
         this.tipe = tipe;
         this.values = values;
@@ -24,20 +24,35 @@ public class Arreglo
         elementos = new ArrayList <>();
         font = new Font("Consolas", Font.BOLD, 14);
         
-        fillArray();
+        fillArray(index, colorIndex);
     }
     
-    private void fillArray()
+    private void fillArray(int index, Color colorIndex)
     {
-        int x = 0, width;
+        int i, x = 0, width;
         
-        for(String value : values)
+        for(i = 0; i < values.length; i++)
         {
-            width = SPACING+dinamicDim(value.length());
-            add(value, dinamicDim(value.length()), x, yInicial, width, SPACING);
+            width = calculateWidth(values[i].length());
+            
+            if(i == index)
+                add(values[i], dinamicDim(values[i].length()), x, yInicial, width, SPACING, colorIndex);
+            else
+                add(values[i], dinamicDim(values[i].length()), x, yInicial, width, SPACING, Color.BLACK);
+            
             x += width;
         }
     }
+    
+    private int calculateWidth(int nDigits)
+    {
+        return SPACING+((nDigits-1)*DIGIT_FACTOR);
+    }
+    
+    private int dinamicDim(int nDigits)
+    {
+        return (nDigits-1)*DIGIT_FACTOR;
+    }    
     
     private int totalWidth()
     {
@@ -51,14 +66,9 @@ public class Arreglo
         return width;
     }
     
-    private int dinamicDim(int nDigits)
+    public void add(String val, int length,  int x, int y, int width, int height, Color color)
     {
-        return (nDigits-1)*DIGIT_FACTOR;
-    }
-    
-    public void add(String val, int length,  int x, int y, int width, int height)
-    {
-        Elemento c = new Elemento(val, length, x, y, width, height);
+        Elemento c = new Elemento(val, length, x, y, width, height, color);
         
         elementos.add(c);
     }
@@ -96,6 +106,8 @@ public class Arreglo
         for(Elemento c : elementos)
 	    c.draw(g2, color);
     }
+    
+    public String getLine() { return line; }
     
     public void clear(Lienzo l)
     {

@@ -15,7 +15,8 @@ public class Variables {
     public int valorsel;
     public String charsel;
 
-    public Variables(){
+    public Variables()
+    {
         values = new LinkedList<>();
         nombre= "";
         tipo= "";

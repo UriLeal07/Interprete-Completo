@@ -25,6 +25,10 @@ import javax.swing.JTextArea;
 import javax.swing.Timer;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.DefaultHighlighter;
+import javax.swing.text.DefaultHighlighter.DefaultHighlightPainter;
+import javax.swing.text.Highlighter.HighlightPainter;
 
 public class MainFrame extends JFrame implements ActionListener
 {
@@ -58,13 +62,14 @@ public class MainFrame extends JFrame implements ActionListener
     private File dirPR;
     private File dirAuto;
     private File dirCodigo;
-    private long eventID;
     private boolean progTitle;
     private boolean arraysLoaded;
     private int step;
-    private Timer timer;
+    private final Timer timer;
     private int maxArrayN;
+    private final ColorTheme colorsT;
     private Color color;
+    private HighlightPainter HLPainter;
 
     public MainFrame()
     {
@@ -90,7 +95,6 @@ public class MainFrame extends JFrame implements ActionListener
         dirAuto = null;
         fileTextAutomata = "";
         fileTextPR = "";
-        eventID = 0;
         step = 0;
         maxArrayN = 0;
         
@@ -111,7 +115,9 @@ public class MainFrame extends JFrame implements ActionListener
         progTitle = false;
         arraysLoaded = false;
         timer = new Timer(2000, this);
-        color = Color.BLUE;
+        color = Color.BLACK;
+        HLPainter = DefaultHighlighter.DefaultPainter;
+        colorsT = new ColorTheme();
         clearGraphics();
     }
     
@@ -615,17 +621,16 @@ public class MainFrame extends JFrame implements ActionListener
             control.cargarReserv(dirPR.getAbsolutePath());
             
             clearWorkspace();
+            
             control.start(dirAuto.getAbsolutePath(), txtEditor.getText());
             
             step = 0;
             setLimits();
-            printListArr();
-            updateArrays();
+            loadArrays();
             
             arraysLoaded = true;
             maxArrayN = getMaxArrayCount();
-            drawArraySet(0, Color.BLACK);
-            System.out.print(printAllHistoriales());
+            highLight(drawArraySet(0, color));
         }
         catch(IOException ie)
         {
@@ -861,43 +866,54 @@ public class MainFrame extends JFrame implements ActionListener
         lienzo.setBounds(X_MARGIN, graficosLP.getY()+Y_MARGIN, graficosLP.getWidth()-WIDTH_MARGIN, graficosLP.getHeight()-HEIGHT_MARGIN);
     }
     
-    private void updateArrays()
+    private void loadArrays()
     {
         if(!listArr.isEmpty())
         {
-            int i = 0, y = -50, ajust = 5, yActivo = -1;
+            int y = -50, ajust = 5, yActivo = -1;
+            int index;
             String auxName = "";
+            String values[];
             boolean primero = true;
-            Historial auxHist = new Historial("", new Rectangle(), 0);
+            boolean maxArraysReached = false;
+            Color colorAux;
+            Historial auxHist = new Historial("", new Rectangle(), 0, null);
             
             for(String[] arr : listArr)
             {
-                // Solo tomamos los arreglos donde estan hay cambios hechos
-                // (numeros pares de arreglos)
-                //if((i%2) == 0)
-                //{
+                try
+                {
                     // Sirve para poder diferenciar un arreglo de otro
                     // y colocarlos en su historial correspondiente
                     if(!auxName.equals(arr[0]))
                     {
                         auxName = arr[0];
                         auxHist = getHistByName(auxName);
-                        
+
                         // Si no existe el historial significa que es de un nuevo arreglo
                         // por lo tanto creamos su historial
-                        if(auxHist == null)
+                        if(auxHist == null && !maxArraysReached)
                         {
                             y += 60;
-                            
+
                             if(y < lienzo.getBounds().height)
                             {
-                                histArreglos.add(new Historial(auxName, lienzo.getBounds(), y));
-                                auxHist = histArreglos.peekLast();
-                                primero = true;
+                                if(checkWidth(arr[2].split("\\|").length) < lienzo.getBounds().width)
+                                //{
+                                    histArreglos.add(new Historial(auxName, lienzo.getBounds(), y, colorsT.getColorTheme()));
+                                    auxHist = histArreglos.peekLast();
+                                    primero = true;
+                                //}
+                               // else
+                               // {
+                               //     msgDial("EL arreglo \""+auxName+"\" contiene demasiados elementos\nNo se mostrara en la ventana de Gráficos",
+                               //     "Arreglo con demasiados elementos", JOptionPane.WARNING_MESSAGE);
+                               // }
                             }
-                            
+
                             else
                             {
+                                maxArraysReached = true;
                                 msgDial("No caben más arreglos en la pantalla\n Se mostran solo "+histArreglos.size(),
                                 "Demasiados arrelgos", JOptionPane.WARNING_MESSAGE);
                             }
@@ -907,22 +923,23 @@ public class MainFrame extends JFrame implements ActionListener
                             yActivo = auxHist.getPosInicial();
                         }
                     }
-                    
-                    String values[] = arr[2].split("\\|");
-                    
+
+                    colorAux = auxHist.getColor();
+                    values = arr[2].split("\\|");
+                    index = Integer.parseInt(arr[4]);
                     Arreglo a;
                     
                     // Si ya tenemos asignada una medida 'y' para el arreglo
                     // Es decir este arreglo pertenece a un historial existente
                     if(yActivo > 0)
                     {
-                        a = new Arreglo(arr[1], values, arr[3], yActivo+ajust);
+                        a = new Arreglo(arr[1], values, arr[3], index, colorAux , yActivo+ajust);
                         yActivo = -1; // Reseteamos valor
                     }
-                    
+
                     else
-                        a = new Arreglo(arr[1], values, arr[3], y+ajust);
-                    
+                        a = new Arreglo(arr[1], values, arr[3], index, colorAux , y+ajust);
+
                     if(primero)
                     {
                         auxHist.getArrs().add(a);
@@ -936,24 +953,15 @@ public class MainFrame extends JFrame implements ActionListener
                             auxHist.getArrs().add(a);
                         }
                     }
-                //}
-                //i++;
-                //if()
+                }
+                catch(Exception ex) {} // NullPointerException
             }
         }
     }
     
-    private void printListArr()
+    private int checkWidth(int nDigits)
     {
-        for(String[] elem: listArr)
-        {
-            for(String s : elem)
-                System.out.print(s+" ");
-            
-            System.out.println();
-        }
-        
-        System.out.println();
+        return Arreglo.SPACING+((nDigits-1)*Arreglo.DIGIT_FACTOR);
     }
     
     private Historial getHistByName(String name)
@@ -983,25 +991,6 @@ public class MainFrame extends JFrame implements ActionListener
         return true;
     }
     
-    private void drawAllArraySets(Color color)
-    {
-        lienzo.clear();
-        lienzo.paintStep(step, color);
-    }
-    
-    private void drawArraySet(int k, Color color)
-    {
-        lienzo.clear();
-        lienzo.paintStep(k, color);
-    }
-
-    private void clearGraphics()
-    {
-        graficosLP.removeAll();
-        lienzo.clear();
-        graficosLP.add(lienzo, new Integer(0));
-    }
-    
     private int getMaxArrayCount()
     {
         int max = -1;
@@ -1013,6 +1002,41 @@ public class MainFrame extends JFrame implements ActionListener
         }
         
         return max;
+    }    
+    
+    private ArrayList<Object> drawArraySet(Color color)
+    {
+        return drawArraySet(step, color);
+    }
+    
+    private ArrayList<Object> drawArraySet(int k, Color color)
+    {
+        ArrayList<Object> attributes = new ArrayList<>();
+        Arreglo aux;
+        
+        lienzo.clear();
+        lienzo.paintStep(k, color);
+        
+        for(Historial h : histArreglos)
+        {
+            try
+            {
+                aux = h.getArrs().get(k);
+            }
+            catch(IndexOutOfBoundsException ob){ aux = h.getArrs().get(h.getArrs().size()-1); }
+            
+            attributes.add(h.getColor());
+            attributes.add(aux.getLine());
+        }
+        
+        return attributes;
+    }
+
+    private void clearGraphics()
+    {
+        graficosLP.removeAll();
+        lienzo.clear();
+        graficosLP.add(lienzo, new Integer(0));
     }
     
     private String printAllHistoriales()
@@ -1034,6 +1058,19 @@ public class MainFrame extends JFrame implements ActionListener
         
         return out;
     }
+    
+    private void printListArr()
+    {
+        for(String[] elem: listArr)
+        {
+            for(String s : elem)
+                System.out.print(s+" ");
+            
+            System.out.println();
+        }
+        
+        System.out.println();
+    }    
     
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
     //
@@ -1150,6 +1187,7 @@ public class MainFrame extends JFrame implements ActionListener
         listVar.clear();
         listCons.clear();
         histArreglos.clear();
+        txtEditor.getHighlighter().removeAllHighlights();
         updateArr(null);
         updateVar(null);
         updateConst(null);
@@ -1187,30 +1225,45 @@ public class MainFrame extends JFrame implements ActionListener
     {
         if(e.getSource() instanceof Timer)
         {
+            
             nextStep();
         }
     }
     
     private void nextStep()
     {
-        Color color;
-        
-        if(step == 0)
-            color = Color.BLACK;
-        else
-            color = this.color;
-        
         if(step++ >= maxArrayN-1)
         {
             timer.stop();
             step = 0;
-            drawArraySet(maxArrayN, Color.BLACK);
+            color = Color.BLACK;
+            highLight(drawArraySet(maxArrayN, color));
             msgDial("Animación terminada con éxito","Animación finalizada", JOptionPane.INFORMATION_MESSAGE);
             
             return;
         }
         
-        drawAllArraySets(color);
+        highLight(drawArraySet(null));
+    }
+    
+    private void highLight(ArrayList<Object> attributes)
+    {
+        try
+        {
+            int i;
+            txtEditor.getHighlighter().removeAllHighlights();
+            
+            for(i = 0; i < attributes.size()-1; i++)
+            {
+                if((i%2) == 0)
+                {
+                    HLPainter = new DefaultHighlightPainter((Color)attributes.get(i));
+                    txtEditor.getHighlighter().addHighlight(txtEditor.getLineStartOffset(Integer.parseInt((String)attributes.get(i+1))-1),
+                    txtEditor.getLineEndOffset(Integer.parseInt((String)attributes.get(i+1))-1), HLPainter);
+                }
+            }
+        }
+        catch(BadLocationException bl){}
     }
     
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
